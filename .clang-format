@@ -1,0 +1,8 @@
+---
+BasedOnStyle: Microsoft
+# DerivePointerAlignment: false
+# PointerAlignment: Left
+# ReferenceAlignment: Left
+# IndentWidth: 4
+
+...
