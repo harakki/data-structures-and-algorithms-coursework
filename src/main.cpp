@@ -32,8 +32,18 @@ struct processed_db
     struct original_db employee;
 };
 
-original_db original_record[4000];
-processed_db processed_record[4000];
+struct temporary
+{
+    char full_name[30];
+    short int department;
+    char post[22];
+    int day;
+    int month;
+    int year;
+};
+
+original_db *original_record = new original_db[4000];
+processed_db *processed_record = new processed_db[4000];
 
 void get_data_from_file(original_db *original_record)
 {
@@ -105,15 +115,52 @@ int get_maximum_number(processed_db *processed_record)
     return maximum_number;
 }
 
-void body_sort()
+void digital_sort(listDataBase *(&S))
 {
-    
-}
+    int KDI[32];
+    for (int i = 0; i < 30; i++)
+        KDI[i] = i;
+    KDI[30] = 31;
+    KDI[31] = 30;
+    int L = 32;
 
-void radix_sort(processed_db *processed_record)
-{
-    int record_of_maximum_number = get_maximum_number(processed_record);
-    body_sort();
+    queue q[256];
+    listDataBase *p;
+    unsigned char d;
+    int k;
+
+    for (int j = L - 1; j >= 0; j--)
+    {
+        for (int i = 0; i <= 255; i++)
+        {
+            q[i].tail = (listDataBase *)&(q[i].head);
+        }
+        p = S;
+        k = KDI[j];
+        while (p != nullptr)
+        {
+            d = p->Digit[k];
+            q[d].tail->next = p;
+            q[d].tail = p;
+            p = p->next;
+        }
+
+        p = (listDataBase *)&S;
+
+        int i = 0;
+        int sign = 1;
+
+        while ((i > -1) && (i < 256))
+        {
+            if (q[i].tail != (listDataBase *)&(q[i].head))
+            {
+                p->next = q[i].head;
+                p = q[i].tail;
+            }
+            i += sign;
+        }
+        p->next = nullptr;
+    }
 }
 
 int main()
@@ -131,7 +178,10 @@ int main()
         }
         system("cls");
     }
-    radix_sort(processed_record);
+    for (int j = 0; j < 4000; ++j)
+    {
+        std::cout << processed_record[j].year << std::endl;
+    }
     system("pause");
     return 0;
 }
