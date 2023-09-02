@@ -29,43 +29,100 @@ struct processed_db
     int day;
     int month;
     int year;
-    // struct original_db employee;
+    struct original_db employee;
 };
 
-original_db record[4000];
-processed_db reworked_record[4000];
+original_db original_record[4000];
+processed_db processed_record[4000];
 
-void get_data_from_file(original_db *record)
+void get_data_from_file(original_db *original_record)
 {
     FILE *db = NULL;
-
-    bool open_error = fopen_s(&db, "db.dat", "rb");
-    if (open_error)
+    if (fopen_s(&db, "db.dat", "rb"))
     {
         std::cout << "File is not available!\n";
         system("pause");
         exit(1);
     }
-    fread((original_db *)record, sizeof(original_db), 4000, db);
+    fread((original_db *)original_record, sizeof(original_db), 4000, db);
     fclose(db);
 }
 
-void print_table(original_db *record)
+void print_table(processed_db *processed_db, int page)
 {
+    std::cout << "Page " << page + 1 << "/200" << std::endl;
+    std::cout << "--------------------------------------------------------------------------" << std::endl;
+    for (int i = 0; i < 20; ++i)
+    {
+        int j = i + page * 20;
+        std::cout << " " << processed_db[j].employee.full_name << "\t" << processed_db[j].employee.department << "\t"
+                  << processed_db[j].employee.post << "\t";
+        printf("%02i-%02i-%02i\n", processed_db[j].day, processed_db[j].month, processed_db[j].year);
+    }
+    std::cout << "--------------------------------------------------------------------------" << std::endl;
+    std::cout << "Enter "
+              << "[1] for next page "
+              << "or [0] for exit" << std::endl;
+}
+
+void filling_in_db(original_db *original_record, processed_db *processed_db)
+{
+    std::string temp_conv_char_to_numb;
+    for (int i = 0; i < 4000; ++i)
+    {
+        for (int j = 0; j < 2; ++j)
+        {
+            temp_conv_char_to_numb += original_record[i].date_of_birth[j];
+        }
+        processed_db[i].day = std::atoi(temp_conv_char_to_numb.c_str());
+        temp_conv_char_to_numb.clear();
+        for (int j = 3; j < 5; ++j)
+        {
+            temp_conv_char_to_numb += original_record[i].date_of_birth[j];
+        }
+        processed_db[i].month = std::atoi(temp_conv_char_to_numb.c_str());
+        temp_conv_char_to_numb.clear();
+        for (int j = 6; j < 8; ++j)
+        {
+            temp_conv_char_to_numb += original_record[i].date_of_birth[j];
+        }
+        processed_db[i].year = std::atoi(temp_conv_char_to_numb.c_str());
+        temp_conv_char_to_numb.clear();
+        processed_db[i].employee = original_record[i];
+    }
+}
+
+int get_maximum_number(processed_db *processed_record)
+{
+    int maximum_number = processed_record[0].year;
+    for (int i = 0; i < 4000; ++i)
+    {
+        if (processed_record[i].year > maximum_number)
+        {
+            maximum_number = processed_record[i].year;
+        }
+    }
+    return maximum_number;
+}
+
+void body_sort()
+{
+    
+}
+
+void radix_sort(processed_db *processed_record)
+{
+    int record_of_maximum_number = get_maximum_number(processed_record);
+    body_sort();
+}
+
+int main()
+{
+    get_data_from_file(original_record);
+    filling_in_db(original_record, processed_record);
     for (int page = 0; page < 200; ++page)
     {
-        std::cout << "Page " << page + 1 << "/200" << std::endl;
-        std::cout << "--------------------------------------------------------------------------" << std::endl;
-        for (int i = 0; i < 20; ++i)
-        {
-            int j = i + page * 20;
-            std::cout << " " << record[j].full_name << "\t" << record[j].department << "\t" << record[j].post << "\t"
-                      << record[j].date_of_birth << std::endl;
-        }
-        std::cout << "--------------------------------------------------------------------------" << std::endl;
-        std::cout << "Enter "
-                  << "[0] for exit "
-                  << "or [1] for next page " << std::endl;
+        print_table(processed_record, page);
         int input;
         std::cin >> input;
         if (input == 0)
@@ -74,92 +131,7 @@ void print_table(original_db *record)
         }
         system("cls");
     }
-}
-
-void conv_char_dates_to_int(original_db *record, processed_db *reworked_record)
-{
-    std::string temp_conv_char_to_numb;
-    for (int i = 0; i < 4000; ++i)
-    {
-        for (int j = 0; j < 2; ++j)
-        {
-            temp_conv_char_to_numb += record[i].date_of_birth[j];
-        }
-        reworked_record[i].day = std::atoi(temp_conv_char_to_numb.c_str());
-        temp_conv_char_to_numb.clear();
-        for (int j = 3; j < 5; ++j)
-        {
-            temp_conv_char_to_numb += record[i].date_of_birth[j];
-        }
-        reworked_record[i].month = std::atoi(temp_conv_char_to_numb.c_str());
-        temp_conv_char_to_numb.clear();
-        for (int j = 6; j < 8; ++j)
-        {
-            temp_conv_char_to_numb += record[i].date_of_birth[j];
-        }
-        reworked_record[i].year = std::atoi(temp_conv_char_to_numb.c_str());
-        temp_conv_char_to_numb.clear();
-        //! DEBUG
-        // printf("%02i-%02i-%02i\n", reworked_record[i].day, reworked_record[i].month, reworked_record[i].year);
-        //! END DEBUG
-    }
-}
-
-// int get_maximum_number(company *record)
-//{
-//     int maximum_number = record[0].date_of_birth;
-//     for (int i = 0; i < 4000; ++i)
-//     {
-//         if (record[i].date_of_birth > maximum_number)
-//         {
-//             maximum_number = record[i].department;
-//         }
-//     }
-//     return maximum_number;
-// }
-
-// void count_sort(company *record, int exp)
-//{
-//     int count[10] = {0};
-//     for (int i = 0; i < 4000; ++i)
-//     {
-//         count[(record[i].department / exp) % 10]++;
-//     }
-//     for (int i = 1; i < 10; ++i)
-//     {
-//         count[i] += count[i - 1];
-//     }
-//     for (int i = 4000 - 1; i >= 0; --i)
-//     {
-//         record[count[(record[i].department / exp) % 10] - 1] = record[i];
-//         count[(record[i].department / exp) % 10]--;
-//     }
-//     // for (int i = 0; i < 4000; ++i)
-//     //{
-//     //     record[i] = record[i];
-//     // }
-// }
-
-// void radix_sort(company *record)
-//{
-//     int record_of_maximum_number = get_maximum_number(record);
-//     for (int exp = 1; record_of_maximum_number / exp > 0; exp *= 10)
-//     {
-//         count_sort(record, exp);
-//     }
-// }
-
-int main()
-{
-    get_data_from_file(record);
-    // print_table(record);
-
-    conv_char_dates_to_int(record, reworked_record);
-
-    // DEVELOPING NEW FUNC FROM HERE
-
-    // radix_sort(record);
-
+    radix_sort(processed_record);
     system("pause");
     return 0;
 }
