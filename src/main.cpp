@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-struct company
+struct original_db
 {
     char full_name[30];
     short int department;
@@ -24,14 +24,18 @@ struct company
     char date_of_birth[10];
 };
 
-struct full_date_of_birth
+struct processed_db
 {
     int day;
     int month;
     int year;
+    // struct original_db employee;
 };
 
-void get_data_from_file(company *record)
+original_db record[4000];
+processed_db reworked_record[4000];
+
+void get_data_from_file(original_db *record)
 {
     FILE *db = NULL;
 
@@ -42,11 +46,11 @@ void get_data_from_file(company *record)
         system("pause");
         exit(1);
     }
-    fread((company *)record, sizeof(company), 4000, db);
+    fread((original_db *)record, sizeof(original_db), 4000, db);
     fclose(db);
 }
 
-void print_table(company *record)
+void print_table(original_db *record)
 {
     for (int page = 0; page < 200; ++page)
     {
@@ -69,6 +73,35 @@ void print_table(company *record)
             break;
         }
         system("cls");
+    }
+}
+
+void conv_char_dates_to_int(original_db *record, processed_db *reworked_record)
+{
+    std::string temp_conv_char_to_numb;
+    for (int i = 0; i < 4000; ++i)
+    {
+        for (int j = 0; j < 2; ++j)
+        {
+            temp_conv_char_to_numb += record[i].date_of_birth[j];
+        }
+        reworked_record[i].day = std::atoi(temp_conv_char_to_numb.c_str());
+        temp_conv_char_to_numb.clear();
+        for (int j = 3; j < 5; ++j)
+        {
+            temp_conv_char_to_numb += record[i].date_of_birth[j];
+        }
+        reworked_record[i].month = std::atoi(temp_conv_char_to_numb.c_str());
+        temp_conv_char_to_numb.clear();
+        for (int j = 6; j < 8; ++j)
+        {
+            temp_conv_char_to_numb += record[i].date_of_birth[j];
+        }
+        reworked_record[i].year = std::atoi(temp_conv_char_to_numb.c_str());
+        temp_conv_char_to_numb.clear();
+        //! DEBUG
+        // printf("%02i-%02i-%02i\n", reworked_record[i].day, reworked_record[i].month, reworked_record[i].year);
+        //! END DEBUG
     }
 }
 
@@ -118,35 +151,15 @@ void print_table(company *record)
 
 int main()
 {
-    company record[4000];
-    full_date_of_birth d_m_y[4000];
-
     get_data_from_file(record);
-    print_table(record);
-    std::string temp_conv_char_to_numb;
-    for (int i = 0; i < 4000; ++i)
-    {
-        for (int j = 0; j < 2; ++j)
-        {
-            temp_conv_char_to_numb += record[i].date_of_birth[j];
-        }
-        d_m_y[i].day = std::atoi(temp_conv_char_to_numb.c_str());
-        temp_conv_char_to_numb.clear();
-        for (int j = 3; j < 5; ++j)
-        {
-            temp_conv_char_to_numb += record[i].date_of_birth[j];
-        }
-        d_m_y[i].month = std::atoi(temp_conv_char_to_numb.c_str());
-        temp_conv_char_to_numb.clear();
-        for (int j = 6; j < 8; ++j)
-        {
-            temp_conv_char_to_numb += record[i].date_of_birth[j];
-        }
-        d_m_y[i].year = std::atoi(temp_conv_char_to_numb.c_str());
-        temp_conv_char_to_numb.clear();
-        //printf("%02i-%02i-%02i\n", d_m_y[i].day, d_m_y[i].month, d_m_y[i].year);
-    }
+    // print_table(record);
 
-     //radix_sort(record);
+    conv_char_dates_to_int(record, reworked_record);
+
+    // DEVELOPING NEW FUNC FROM HERE
+
+    // radix_sort(record);
+
+    system("pause");
     return 0;
 }
