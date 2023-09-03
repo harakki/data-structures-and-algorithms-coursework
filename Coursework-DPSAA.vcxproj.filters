@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="GitHub">
+      <UniqueIdentifier>{2596b274-494b-497d-a382-d69eb3bef45a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -20,10 +23,23 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="db.dat" />
-    <None Include=".clang-format" />
-    <None Include=".gitignore" />
-    <None Include="LICENSE" />
-    <None Include="README.md" />
+    <None Include="README.md">
+      <Filter>GitHub</Filter>
+    </None>
+    <None Include="LICENSE">
+      <Filter>GitHub</Filter>
+    </None>
+    <None Include=".github\workflows\build.yml">
+      <Filter>GitHub</Filter>
+    </None>
+    <None Include=".gitignore">
+      <Filter>GitHub</Filter>
+    </None>
+    <None Include=".clang-format">
+      <Filter>GitHub</Filter>
+    </None>
+    <None Include="testBase2.dat">
+      <Filter>Файлы ресурсов</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -23,10 +23,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include=".clang-format" />
+    <None Include=".github\workflows\build.yml" />
     <None Include=".gitignore" />
-    <None Include="db.dat" />
     <None Include="LICENSE" />
     <None Include="README.md" />
+    <None Include="testBase2.dat" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

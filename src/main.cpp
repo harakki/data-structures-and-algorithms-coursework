@@ -14,211 +14,134 @@
  * limitations under the License.
  */
 
-#include <conio.h> // для getch()
+#include <conio.h>
 #include <iostream>
 
-struct original_db
-{
-    char full_name[30];
-    short int department;
-    char post[22];
-    char date_of_birth[10];
-};
+#include "structures.h"
 
-struct processed_db
-{
-    int day;
-    int month;
-    int year;
-    struct original_db employee;
-};
+#define DATABASE_SIZE 4000
+#define AMMOUNT_OF_PAGES ((2 * DATABASE_SIZE / PAGE_SIZE + 1) / 2)
+#define PAGE_SIZE 20
 
-struct temporary
+void get_database(Database *record)
 {
-    char full_name[30];
-    short int department;
-    char post[22];
-    int day;
-    int month;
-    int year;
-};
+    FILE *input = NULL;
 
-original_db *original_record = new original_db[4000];
-processed_db *processed_record = new processed_db[4000];
-
-void get_data_from_file(original_db *original_record)
-{
-    FILE *db = NULL;
-    if (fopen_s(&db, "db.dat", "rb"))
+    if (fopen_s(&input, "testBase2.dat", "rb"))
     {
         std::cout << "File is not available!\n";
-        system("pause");
+
         exit(1);
     }
-    fread((original_db *)original_record, sizeof(original_db), 4000, db);
-    fclose(db);
+
+    fread((Database *)record, sizeof(Database), DATABASE_SIZE, input);
+    fclose(input);
 }
 
-void print_table(processed_db *processed_db, int page)
+void filling_db(Database *record, Processed_dates *date)
 {
-    std::cout << "Page " << page + 1 << "/200" << std::endl;
-    std::cout << "--------------------------------------------------------------------------" << std::endl;
-    for (int i = 0; i < 20; ++i)
+    std::string temp;
+
+    for (int i = 0; i < DATABASE_SIZE; ++i)
     {
-        int j = i + page * 20;
-        std::cout << " " << processed_db[j].employee.full_name << "\t" << processed_db[j].employee.department << "\t"
-                  << processed_db[j].employee.post << "\t";
-        printf("%02i-%02i-%02i\n", processed_db[j].day, processed_db[j].month, processed_db[j].year);
+        temp.clear();
+
+        for (int j = 0; j < 2; ++j)
+        {
+            temp += record[i].date_of_birth[j];
+        }
+        date[i].day = std::atoi(temp.c_str());
+
+        temp.clear();
+
+        for (int j = 3; j < 5; ++j)
+        {
+            temp += record[i].date_of_birth[j];
+        }
+        date[i].month = std::atoi(temp.c_str());
+
+        temp.clear();
+
+        for (int j = 6; j < 8; ++j)
+        {
+            temp += record[i].date_of_birth[j];
+        }
+        date[i].year = std::atoi(temp.c_str());
     }
-    std::cout << "--------------------------------------------------------------------------" << std::endl;
-    std::cout << "Enter "
-              << "[1] for next page "
-              << "or [0] for exit" << std::endl;
 }
 
-void i_o(processed_db* processed_db)
+void print_table(Database *record, Processed_dates *date, int page)
 {
+    printf("Page %i/%i\n---------------------------------------------------------------------------------\n", page + 1,
+           AMMOUNT_OF_PAGES);
+
+    for (int i = 0; i < PAGE_SIZE; ++i)
+    {
+        int j = i + page * PAGE_SIZE;
+        {
+            printf("% 5i.\t", j + 1);
+        }
+
+        printf("% 30s\t%i\t% 22s\t%02i-%02i-%02i\n", record[j].full_name, record[j].department, record[j].post,
+               date[j].day, date[j].month, date[j].year);
+    }
+
+    printf("---------------------------------------------------------------------------------\nUse arrow keys to "
+           "change page or enter [ESC] for exit.\n");
+}
+
+void interaction_with_program(Database *record, Processed_dates *date)
+{
+    bool exit_flag = false;
     int page = 0;
-    int exit_flag = 0;
 
     while (exit_flag == 0)
     {
         system("cls");
-        print_table(processed_record, page);
+        print_table(record, date, page);
 
         switch (int input = _getch())
         {
-        case '0': // exit code
-            exit_flag = 1;
-            input = 0;
+        case 'd':
+        case 77: // [>]
+            page += 1;
+            if (page > AMMOUNT_OF_PAGES - 1)
+            {
+                page -= 1;
+            }
+
             break;
 
-        case 27: // ESC
-            exit_flag = 1;
-            input = 0;
-            break;
-
-        case 75: // <-
+        case 'a':
+        case 75: // [<]
             page -= 1;
             if (page < 0)
             {
                 page += 1;
             }
-            input = 0;
+
             break;
 
-        case 77: // ->
-            page += 1;
-            if (page > 200 - 1)
-            {
-                page -= 1;
-            }
-            input = 0;
+        case '0':
+        case 27: // [ESC]
+            exit_flag = true;
+
             break;
         }
     }
 }
-
-void filling_in_db(original_db *original_record, processed_db *processed_db)
-{
-    std::string temp_conv_char_to_numb;
-    for (int i = 0; i < 4000; ++i)
-    {
-        for (int j = 0; j < 2; ++j)
-        {
-            temp_conv_char_to_numb += original_record[i].date_of_birth[j];
-        }
-        processed_db[i].day = std::atoi(temp_conv_char_to_numb.c_str());
-        temp_conv_char_to_numb.clear();
-        for (int j = 3; j < 5; ++j)
-        {
-            temp_conv_char_to_numb += original_record[i].date_of_birth[j];
-        }
-        processed_db[i].month = std::atoi(temp_conv_char_to_numb.c_str());
-        temp_conv_char_to_numb.clear();
-        for (int j = 6; j < 8; ++j)
-        {
-            temp_conv_char_to_numb += original_record[i].date_of_birth[j];
-        }
-        processed_db[i].year = std::atoi(temp_conv_char_to_numb.c_str());
-        temp_conv_char_to_numb.clear();
-        processed_db[i].employee = original_record[i];
-    }
-}
-
-int get_maximum_number(processed_db *processed_record)
-{
-    int maximum_number = processed_record[0].year;
-    for (int i = 0; i < 4000; ++i)
-    {
-        if (processed_record[i].year > maximum_number)
-        {
-            maximum_number = processed_record[i].year;
-        }
-    }
-    return maximum_number;
-}
-
-// void digital_sort(listDataBase *(&S))
-//{
-//     int KDI[32];
-//     for (int i = 0; i < 30; i++)
-//         KDI[i] = i;
-//     KDI[30] = 31;
-//     KDI[31] = 30;
-//     int L = 32;
-//
-//     queue q[256];
-//     listDataBase *p;
-//     unsigned char d;
-//     int k;
-//
-//     for (int j = L - 1; j >= 0; j--)
-//     {
-//         for (int i = 0; i <= 255; i++)
-//         {
-//             q[i].tail = (listDataBase *)&(q[i].head);
-//         }
-//         p = S;
-//         k = KDI[j];
-//         while (p != nullptr)
-//         {
-//             d = p->Digit[k];
-//             q[d].tail->next = p;
-//             q[d].tail = p;
-//             p = p->next;
-//         }
-//
-//         p = (listDataBase *)&S;
-//
-//         int i = 0;
-//         int sign = 1;
-//
-//         while ((i > -1) && (i < 256))
-//         {
-//             if (q[i].tail != (listDataBase *)&(q[i].head))
-//             {
-//                 p->next = q[i].head;
-//                 p = q[i].tail;
-//             }
-//             i += sign;
-//         }
-//         p->next = nullptr;
-//     }
-// }
 
 int main()
 {
-    get_data_from_file(original_record);
-    filling_in_db(original_record, processed_record);
-    i_o(processed_record);
+    get_database(record);
 
-    for (int j = 0; j < 4000; ++j)
-    {
-        printf("%02i\n", processed_record[j].year);
-        //std::cout << processed_record[j].year << std::endl;
-    }
+    filling_db(record, date);
 
-    system("pause");
+    interaction_with_program(record, date);
+
+    // Node* head;
+    // head = new Node;
+    //
+
     return 0;
 }
