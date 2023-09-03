@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include <conio.h> // для getch()
 #include <iostream>
 
 struct original_db
@@ -75,6 +76,49 @@ void print_table(processed_db *processed_db, int page)
               << "or [0] for exit" << std::endl;
 }
 
+void i_o(processed_db* processed_db)
+{
+    int page = 0;
+    int exit_flag = 0;
+
+    while (exit_flag == 0)
+    {
+        system("cls");
+        print_table(processed_record, page);
+
+        switch (int input = _getch())
+        {
+        case '0': // exit code
+            exit_flag = 1;
+            input = 0;
+            break;
+
+        case 27: // ESC
+            exit_flag = 1;
+            input = 0;
+            break;
+
+        case 75: // <-
+            page -= 1;
+            if (page < 0)
+            {
+                page += 1;
+            }
+            input = 0;
+            break;
+
+        case 77: // ->
+            page += 1;
+            if (page > 200 - 1)
+            {
+                page -= 1;
+            }
+            input = 0;
+            break;
+        }
+    }
+}
+
 void filling_in_db(original_db *original_record, processed_db *processed_db)
 {
     std::string temp_conv_char_to_numb;
@@ -115,73 +159,66 @@ int get_maximum_number(processed_db *processed_record)
     return maximum_number;
 }
 
-void digital_sort(listDataBase *(&S))
-{
-    int KDI[32];
-    for (int i = 0; i < 30; i++)
-        KDI[i] = i;
-    KDI[30] = 31;
-    KDI[31] = 30;
-    int L = 32;
-
-    queue q[256];
-    listDataBase *p;
-    unsigned char d;
-    int k;
-
-    for (int j = L - 1; j >= 0; j--)
-    {
-        for (int i = 0; i <= 255; i++)
-        {
-            q[i].tail = (listDataBase *)&(q[i].head);
-        }
-        p = S;
-        k = KDI[j];
-        while (p != nullptr)
-        {
-            d = p->Digit[k];
-            q[d].tail->next = p;
-            q[d].tail = p;
-            p = p->next;
-        }
-
-        p = (listDataBase *)&S;
-
-        int i = 0;
-        int sign = 1;
-
-        while ((i > -1) && (i < 256))
-        {
-            if (q[i].tail != (listDataBase *)&(q[i].head))
-            {
-                p->next = q[i].head;
-                p = q[i].tail;
-            }
-            i += sign;
-        }
-        p->next = nullptr;
-    }
-}
+// void digital_sort(listDataBase *(&S))
+//{
+//     int KDI[32];
+//     for (int i = 0; i < 30; i++)
+//         KDI[i] = i;
+//     KDI[30] = 31;
+//     KDI[31] = 30;
+//     int L = 32;
+//
+//     queue q[256];
+//     listDataBase *p;
+//     unsigned char d;
+//     int k;
+//
+//     for (int j = L - 1; j >= 0; j--)
+//     {
+//         for (int i = 0; i <= 255; i++)
+//         {
+//             q[i].tail = (listDataBase *)&(q[i].head);
+//         }
+//         p = S;
+//         k = KDI[j];
+//         while (p != nullptr)
+//         {
+//             d = p->Digit[k];
+//             q[d].tail->next = p;
+//             q[d].tail = p;
+//             p = p->next;
+//         }
+//
+//         p = (listDataBase *)&S;
+//
+//         int i = 0;
+//         int sign = 1;
+//
+//         while ((i > -1) && (i < 256))
+//         {
+//             if (q[i].tail != (listDataBase *)&(q[i].head))
+//             {
+//                 p->next = q[i].head;
+//                 p = q[i].tail;
+//             }
+//             i += sign;
+//         }
+//         p->next = nullptr;
+//     }
+// }
 
 int main()
 {
     get_data_from_file(original_record);
     filling_in_db(original_record, processed_record);
-    for (int page = 0; page < 200; ++page)
-    {
-        print_table(processed_record, page);
-        int input;
-        std::cin >> input;
-        if (input == 0)
-        {
-            break;
-        }
-        system("cls");
-    }
+    i_o(processed_record);
+
     for (int j = 0; j < 4000; ++j)
     {
-        std::cout << processed_record[j].year << std::endl;
+        printf("%02i\n", processed_record[j].year);
+        //std::cout << processed_record[j].year << std::endl;
     }
+
     system("pause");
     return 0;
 }
