@@ -29,6 +29,9 @@
     <None Include="README.md" />
     <None Include="testBase2.dat" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\structures.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>

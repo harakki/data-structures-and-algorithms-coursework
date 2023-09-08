@@ -38,8 +38,11 @@
     <None Include=".clang-format">
       <Filter>GitHub</Filter>
     </None>
-    <None Include="testBase2.dat">
-      <Filter>Файлы ресурсов</Filter>
-    </None>
+    <None Include="testBase2.dat" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\structures.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

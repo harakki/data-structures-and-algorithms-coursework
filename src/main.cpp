@@ -20,10 +20,10 @@
 #include "structures.h"
 
 #define DATABASE_SIZE 4000
-#define AMMOUNT_OF_PAGES ((2 * DATABASE_SIZE / PAGE_SIZE + 1) / 2)
+#define AMMOUNT_OF_PAGES ((2 * DATABASE_SIZE / PAGE_SIZE + 1) / 2) // Работает только с положительными числами
 #define PAGE_SIZE 20
 
-void get_database(Database *record)
+void get_db(Database *record)
 {
     FILE *input = NULL;
 
@@ -90,7 +90,7 @@ void print_table(Database *record, Processed_dates *date, int page)
            "change page or enter [ESC] for exit.\n");
 }
 
-void interaction_with_program(Database *record, Processed_dates *date)
+void program_interaction(Database *record, Processed_dates *date)
 {
     bool exit_flag = false;
     int page = 0;
@@ -131,17 +131,102 @@ void interaction_with_program(Database *record, Processed_dates *date)
     }
 }
 
+// void digital_sort(Node *&head, int queueLength)
+//{
+//     int KDI[4] = {3, 2, 1, 0};
+//     int j, i, d, k;
+//
+//     Node *head;
+//     tle Q[256];
+//     for (j = queueLength - 1; j >= 0; j--)
+//     { // инициализация очередей Q
+//         for (i = 0; i < 256; i++)
+//             Q[i].tail = (spis *)&Q[i].head;
+//         p = S;
+//         k = KDI[j];
+//         while (p)
+//         { // расстановка элементов из списка S в очереди Q по j - ой цифре
+//             d = p->Digit[k];
+//             Q[d].tail->next = p;
+//             Q[d].tail = p;
+//             p = p->next;
+//         }
+//         p = (spis *)&S; // соединение очередей Q в список S
+//         for (i = 0; i < 256; i++)
+//         {
+//             if (Q[i].tail != (spis *)&Q[i].head)
+//             {
+//                 p->next = Q[i].head;
+//                 p = Q[i].tail;
+//             }
+//         }
+//         p->next = NULL;
+//     }
+// }
+
+void print_node(Node *&head)
+{
+    // Цикл вывода всех значений односвязного списка
+    Node *output_cycle = head;
+    while (output_cycle != NULL)
+    {
+        for (int i = 0; i < DATABASE_SIZE; ++i)
+        {
+
+            std::cout << i + 1 << "."
+                      << "\t" << output_cycle->record.full_name << "\t" << output_cycle->record.department << "\t"
+                      << output_cycle->record.post << "\t" << output_cycle->record.date_of_birth << std::endl;
+            output_cycle = output_cycle->next;
+        }
+    }
+}
+
+void node_initialization(Node *&head)
+{
+    // Инициализация указателей
+    Node *current; // текущий
+    Node *tail;    // конец
+
+    head = new Node;
+    current = head;
+    tail = current;
+
+    strcpy_s(current->record.full_name, record[0].full_name);
+    current->record.department = record[0].department;
+    strcpy_s(current->record.post, record[0].post);
+    strcpy_s(current->record.date_of_birth, record[0].date_of_birth);
+
+    // Цикл добавления элементов в односвязный список
+    for (int i = 1; i < DATABASE_SIZE; ++i)
+    {
+        tail = new Node;
+        current->next = tail;
+        current = tail;
+
+        strcpy_s(current->record.full_name, record[i].full_name);
+        current->record.department = record[i].department;
+        strcpy_s(current->record.post, record[i].post);
+        strcpy_s(current->record.date_of_birth, record[i].date_of_birth);
+    }
+
+    // Объявление конца односвязного списка
+    tail->next = NULL;
+
+    //print_node(head);
+}
+
 int main()
 {
-    get_database(record);
+    get_db(record);
 
     filling_db(record, date);
 
-    interaction_with_program(record, date);
+    program_interaction(record, date);
 
-    // Node* head;
-    // head = new Node;
-    //
+    Node *head;
+    node_initialization(head);
+
+    //digital_sort(head);
 
     return 0;
 }
