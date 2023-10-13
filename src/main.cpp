@@ -1,5 +1,6 @@
 #include <Windows.h>
 #include <iostream>
+#include <vector>
 
 #define DATABASE_SIZE 4000
 #define PAGE_SIZE 20
@@ -89,11 +90,40 @@ void printList(List *&head)
         cout << "Empty list.";
     };
 
+    int record_number = 1;
+
     while (ptr != nullptr)
     {
-        cout << ptr->record.full_name << "\t" << ptr->record.department << "\t" << ptr->record.post << "\t"
-             << ptr->record.date_of_birth << "\t" << endl;
+        cout << record_number << "\t" << ptr->record.full_name << "\t" << ptr->record.department << "\t"
+             << ptr->record.post << "\t" << ptr->record.date_of_birth << "\t" << endl;
         ptr = ptr->next;
+        ++record_number;
+    }
+}
+
+void printPartOfList(List *&head, int range_of_records[])
+{
+    List *ptr = head;
+
+    if (ptr == nullptr)
+    {
+        cout << "Empty list.";
+    }
+
+    int record_number = range_of_records[0] + 1;
+    int i = 0;
+
+    for (i; i < range_of_records[0]; ++i)
+    {
+        ptr = ptr->next;
+    }
+
+    for (i; i <= range_of_records[1]; ++i)
+    {
+        cout << record_number << "\t" << ptr->record.full_name << "\t" << ptr->record.department << "\t"
+             << ptr->record.post << "\t" << ptr->record.date_of_birth << "\t" << endl;
+        ptr = ptr->next;
+        ++record_number;
     }
 }
 
@@ -149,35 +179,75 @@ void digitalSort(List *&head)
     }
 }
 
-void indexArrayInit(List *&head, Enterprise **index_arr)
+void indexArrayInit(int index_array[], List *&head)
 {
-    index_arr = new Enterprise *[DATABASE_SIZE] {nullptr};
-    int i = 0;
-
     List *ptr = head;
 
-    while (ptr != nullptr)
+    std::string temp;
+
+    for (int i = 0; i < DATABASE_SIZE; ++i)
     {
-        index_arr[i] = &ptr->record;
+        temp.clear();
+
+        for (int j = 6; j < 8; ++j)
+        {
+            temp += ptr->record.date_of_birth[j];
+        }
+
+        index_array[i] = std::atoi(temp.c_str());
+
         ptr = ptr->next;
-        ++i;
     }
 }
 
-//List *binarySearch(Enterprise **index_arr, int key)
-//{
-//    List *head = nullptr;
-//    List *ptr = nullptr;
-//
-//    int left = 0;
-//    int middle = 0;
-//    int right = DATABASE_SIZE - 1;
-//
-//    while (left <= right)
-//    {
-//        middle = (left + right) / 2;
-//    }
-//}
+int binarySearch(int index_array[], int target)
+{
+    int left = 0;
+    int right = DATABASE_SIZE - 1;
+
+    while (left <= right)
+    {
+        int middle = (left + right) / 2;
+        if (index_array[middle] == target)
+        {
+            return middle;
+        }
+        else if (index_array[middle] < target)
+        {
+            left = middle + 1;
+        }
+        else
+        {
+            right = middle - 1;
+        }
+    }
+
+    return -1;
+}
+
+int indexFoundLeftmost(int index_array[], int found_index)
+{
+    int leftmost_index = found_index;
+
+    while (index_array[leftmost_index - 1] == index_array[found_index])
+    {
+        --leftmost_index;
+    }
+
+    return leftmost_index;
+}
+
+int indexFoundRightmost(int index_array[], int found_index)
+{
+    int rightmost_index = found_index;
+
+    while (index_array[rightmost_index + 1] == index_array[found_index])
+    {
+        ++rightmost_index;
+    }
+
+    return rightmost_index;
+}
 
 int main(int argc, char *argv[])
 {
@@ -189,10 +259,24 @@ int main(int argc, char *argv[])
 
     printList(list);
 
+    int index_array[DATABASE_SIZE];
+    indexArrayInit(index_array, list);
 
-    Enterprise **index_arr = nullptr;
-    indexArrayInit(list, index_arr);
-    //binarySearch(index_arr, 50);
+    int search = 0;
+    cout << "Введите год рождения для вывода списка сотрудников: ";
+    std::cin >> search;
+
+    int found_index = binarySearch(index_array, search);
+
+    if (found_index != -1)
+    {
+        int range_of_records[2] = {};
+
+        range_of_records[0] = indexFoundLeftmost(index_array, found_index);
+        range_of_records[1] = indexFoundRightmost(index_array, found_index);
+
+        printPartOfList(list, range_of_records);
+    }
 
     deleteList(list);
 
