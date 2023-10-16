@@ -1,6 +1,6 @@
 #include <Windows.h>
+#include <conio.h>
 #include <iostream>
-#include <vector>
 
 #define DATABASE_SIZE 4000
 #define PAGE_SIZE 20
@@ -83,6 +83,8 @@ List *fillOutList()
 
 void printList(List *&head)
 {
+    system("cls");
+
     List *ptr = head;
 
     if (ptr == nullptr)
@@ -92,6 +94,8 @@ void printList(List *&head)
 
     int record_number = 1;
 
+    cout << "---------------------------------------------------------------------------------\n";
+
     while (ptr != nullptr)
     {
         cout << record_number << "\t" << ptr->record.full_name << "\t" << ptr->record.department << "\t"
@@ -99,15 +103,21 @@ void printList(List *&head)
         ptr = ptr->next;
         ++record_number;
     }
+
+    cout << "---------------------------------------------------------------------------------\n";
+
+    system("pause");
 }
 
-void printPartOfList(List *&head, int range_of_records[])
+bool printPartOfList(List *&head, int range_of_records[])
 {
     List *ptr = head;
 
     if (ptr == nullptr)
     {
         cout << "Empty list.";
+
+        return 1;
     }
 
     int record_number = range_of_records[0] + 1;
@@ -118,6 +128,8 @@ void printPartOfList(List *&head, int range_of_records[])
         ptr = ptr->next;
     }
 
+    cout << "---------------------------------------------------------------------------------\n";
+
     for (i; i <= range_of_records[1]; ++i)
     {
         cout << record_number << "\t" << ptr->record.full_name << "\t" << ptr->record.department << "\t"
@@ -125,6 +137,8 @@ void printPartOfList(List *&head, int range_of_records[])
         ptr = ptr->next;
         ++record_number;
     }
+
+    printf("---------------------------------------------------------------------------------\n");
 }
 
 void deleteList(List *&head)
@@ -249,21 +263,15 @@ int indexFoundRightmost(int index_array[], int found_index)
     return rightmost_index;
 }
 
-int main(int argc, char *argv[])
+void searchList(List *&list)
 {
-    SetConsoleOutputCP(866);
-
-    List *list = fillOutList();
-
-    digitalSort(list);
-
-    printList(list);
-
     int index_array[DATABASE_SIZE];
     indexArrayInit(index_array, list);
 
     int search = 0;
-    cout << "Введите год рождения для вывода списка сотрудников: ";
+
+    system("cls");
+    cout << "Enter the year of birth to display a list of employees: ";
     std::cin >> search;
 
     int found_index = binarySearch(index_array, search);
@@ -276,7 +284,77 @@ int main(int argc, char *argv[])
         range_of_records[1] = indexFoundRightmost(index_array, found_index);
 
         printPartOfList(list, range_of_records);
+
+        system("pause");
     }
+}
+
+void programInteraction(List *&head)
+{
+    bool exit_flag = false;
+    int page = 0;
+
+    while (exit_flag == 0)
+    {
+        system("cls");
+
+        int range_of_records[2] = {page * PAGE_SIZE, page * PAGE_SIZE + 19};
+
+        printf("Page %i/%i\n", range_of_records[0] / PAGE_SIZE + 1, AMMOUNT_OF_PAGES);
+        printPartOfList(head, range_of_records);
+        printf("Use arrow keys to change page, [F] to search for part of records, [E] to display \nall records or "
+               "enter [ESC] for exit.\n");
+
+        switch (_getch())
+        {
+        case 'd':
+        case 77: // [>]
+            page += 1;
+            if (page > AMMOUNT_OF_PAGES - 1)
+            {
+                page -= 1;
+            }
+
+            break;
+
+        case 'a':
+        case 75: // [<]
+            page -= 1;
+            if (page < 0)
+            {
+                page += 1;
+            }
+
+            break;
+
+        case 'f':
+            searchList(head);
+
+            break;
+
+        case 'e':
+            printList(head);
+
+            break;
+
+        case '0':
+        case 27: // [ESC]
+            exit_flag = true;
+
+            break;
+        }
+    }
+}
+
+int main(int argc, char *argv[])
+{
+    SetConsoleOutputCP(866);
+
+    List *list = fillOutList();
+
+    digitalSort(list);
+
+    programInteraction(list);
 
     deleteList(list);
 
