@@ -289,6 +289,11 @@ void searchList(List *&list)
     }
 }
 
+void optimalSearchTree(List*& list)
+{
+
+}
+
 void programInteraction(List *&head)
 {
     bool exit_flag = false;
