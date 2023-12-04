@@ -6,6 +6,10 @@
 #define PAGE_SIZE 20
 #define AMMOUNT_OF_PAGES ((2 * DATABASE_SIZE / PAGE_SIZE + 1) / 2)
 
+#define TREE_SIZE 25
+
+#define MAX_SYMBOLS 256
+
 using std::cout;
 using std::endl;
 
@@ -31,6 +35,29 @@ struct Queue
     List *head;
     List *tail;
 };
+
+struct Tree
+{
+    int data = 0;
+    int weight = 0;
+
+    Tree *left = nullptr;
+    Tree *right = nullptr;
+
+    List *next = nullptr;
+};
+
+struct Symbol 
+{
+    char symbol;
+    double probability;
+    double Q;
+    int L;
+    int code[MAX_SYMBOLS];
+};
+
+int V[TREE_SIZE];
+int W[TREE_SIZE];
 
 Enterprise *getFileData()
 {
@@ -109,7 +136,7 @@ void printList(List *&head)
     system("pause");
 }
 
-bool printPartOfList(List *&head, int range_of_records[])
+void printPartOfList(List *&head, int range_of_records[])
 {
     List *ptr = head;
 
@@ -117,7 +144,7 @@ bool printPartOfList(List *&head, int range_of_records[])
     {
         cout << "Empty list.";
 
-        return 1;
+        return;
     }
 
     int record_number = range_of_records[0] + 1;
@@ -289,9 +316,193 @@ void searchList(List *&list)
     }
 }
 
-void optimalSearchTree(List*& list)
+void digitalSortForTree(List *&head)
 {
+    Queue *queue = new Queue[DATABASE_SIZE];
 
+    for (int i = 0; i < DATABASE_SIZE; ++i)
+    {
+        queue[i].tail = (List *)&queue[i].head;
+    }
+
+    List *ptr = head;
+
+    while (ptr != NULL)
+    {
+        short int digit = ptr->record.department;
+        queue[digit].tail->next = ptr;
+        queue[digit].tail = ptr;
+
+        ptr = ptr->next;
+    }
+
+    ptr = (List *)&head;
+
+    for (int i = 0; i < DATABASE_SIZE; ++i)
+    {
+        if (queue[i].tail != (List *)&queue[i].head)
+        {
+            ptr->next = queue[i].head;
+            ptr = queue[i].tail;
+        }
+    }
+    ptr->next = nullptr;
+
+    delete[] queue;
+}
+
+void countWeightsForTree(List *&head)
+{
+    List *current = head;
+    int size = 0;
+
+    short int current_department = current->record.department;
+    int current_weight = 0;
+
+    while (current != nullptr)
+    {
+        if (current->record.department == current_department)
+        {
+            current_weight++;
+
+            current = current->next;
+        }
+        else
+        {
+            V[size] = (current_department);
+            W[size] = current_weight;
+            size++;
+
+            current_department = current->record.department;
+            current_weight = 0;
+        }
+    }
+
+    V[size] = (current_department);
+    W[size] = current_weight;
+    size++;
+}
+
+List *createListInOptimalSerchTree(List *&list, int size)
+{
+    List *head = nullptr;
+    List *tail = nullptr;
+
+    for (int i = 0; i < size; ++i)
+    {
+        List *temp = new List;
+
+        strcpy_s(temp->record.full_name, list->record.full_name);
+        temp->record.department = list->record.department;
+        strcpy_s(temp->record.post, list->record.post);
+        strcpy_s(temp->record.date_of_birth, list->record.date_of_birth);
+
+        temp->next = nullptr;
+        list = list->next;
+
+        if (head == nullptr)
+        {
+            head = temp;
+            tail = temp;
+        }
+        else
+        {
+            tail->next = temp;
+            tail = temp;
+        }
+    }
+
+    return head;
+}
+
+void addToOptimalSearchTree(Tree *&ptr, int Data, int Weight, List *list)
+{
+    if (ptr == nullptr)
+    {
+        ptr = new Tree;
+        ptr->data = Data;
+        ptr->weight = Weight;
+        ptr->next = list;
+    }
+    else if (Data <= (ptr->data))
+    {
+        addToOptimalSearchTree(ptr->left, Data, Weight, list);
+    }
+    else if (Data > (ptr->data))
+    {
+        addToOptimalSearchTree(ptr->right, Data, Weight, list);
+    }
+}
+
+void createOptimalSearchTreeA1(Tree *&root, List *&head)
+{
+    List *current = head;
+
+    for (int i = 0; i < 25; i++)
+    {
+        int size = W[i];
+
+        List *list = createListInOptimalSerchTree(current, size);
+
+        addToOptimalSearchTree(root, V[i], W[i], list);
+    }
+}
+
+List *treeSearch(Tree *&root, int target)
+{
+    if (root == nullptr)
+    {
+        return NULL; // В дереве нет узла с заданным значением
+    }
+
+    if (target == root->data)
+    {
+        return root->next; // Значение найдено
+    }
+    else if (target < root->data)
+    {
+        return treeSearch(root->left, target);
+    }
+    else
+    {
+        return treeSearch(root->right, target);
+    }
+}
+
+void treeInteraction()
+{
+    List *head = fillOutList();
+
+    digitalSortForTree(head);
+
+    countWeightsForTree(head);
+
+    Tree *root = nullptr;
+
+    createOptimalSearchTreeA1(root, head);
+    
+    printf("Search in the optimal search tree\n\n");
+
+    int search = 0;
+
+    system("cls");
+    cout << "Enter number of the department to display a list of employees: ";
+    std::cin >> search;
+
+    List *found = treeSearch(root, search);
+
+    if (found == nullptr)
+    {
+        printf("\nThis value was not found!\n\n");
+        system("pause");
+        return;
+    }
+
+    while (found != nullptr)
+    {
+        printList(found);
+        return;
+    }
 }
 
 void programInteraction(List *&head)
@@ -307,7 +518,8 @@ void programInteraction(List *&head)
 
         printf("Page %i/%i\n", range_of_records[0] / PAGE_SIZE + 1, AMMOUNT_OF_PAGES);
         printPartOfList(head, range_of_records);
-        printf("Use arrow keys to change page, [F] to search for part of records, [E] to display \nall records or "
+        printf("Use arrow keys to change page, [F] to search for part of records, [Z] to search \nwith tree, [E] to "
+               "display all records or "
                "enter [ESC] for exit.\n");
 
         switch (_getch())
@@ -339,6 +551,11 @@ void programInteraction(List *&head)
 
         case 'e':
             printList(head);
+
+            break;
+
+        case 'z':
+            treeInteraction();
 
             break;
 
