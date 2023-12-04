@@ -49,11 +49,11 @@ struct Tree
 
 struct Symbol
 {
-    char symbol;
-    double probability;
-    double Q;
-    int L;
-    int code[MAX_SYMBOLS];
+    double probability;            // P
+    double cumulative_probability; // Q
+    int code_length;               // L
+    int code[MAX_SYMBOLS];         // код. слово
+    char symbol;                   // a
 };
 
 int V[TREE_SIZE];
@@ -458,7 +458,7 @@ void deleteTree(Tree *root)
     deleteTree(root->left);
     deleteTree(root->right);
 
-    //delete root;
+    // delete root;
     free(root);
 }
 
@@ -556,20 +556,20 @@ void gilbertMooreCoding(Symbol *symbols, int alphabet_size)
 
     for (int i = 0; i < alphabet_size; ++i)
     {
-        symbols[i].Q = pr + symbols[i].probability / 2;
+        symbols[i].cumulative_probability = pr + symbols[i].probability / 2;
 
         pr += symbols[i].probability;
 
-        symbols[i].L = -log2(symbols[i].probability) + 1;
+        symbols[i].code_length = -log2(symbols[i].probability) + 1;
 
-        for (int j = 0; j < symbols[i].L; ++j)
+        for (int j = 0; j < symbols[i].code_length; ++j)
         {
-            symbols[i].Q *= 2;
-            symbols[i].code[j] = (int)symbols[i].Q;
+            symbols[i].cumulative_probability *= 2;
+            symbols[i].code[j] = (int)symbols[i].cumulative_probability;
 
-            if (symbols[i].Q > 1)
+            if (symbols[i].cumulative_probability > 1)
             {
-                symbols[i].Q -= 1;
+                symbols[i].cumulative_probability -= 1;
             }
         }
     }
@@ -583,9 +583,9 @@ void printSymbolCodes(Symbol *symbols, int alphabet_size)
     {
         printf(" [%c]\t", symbols[i].symbol);
         printf("%f\t", symbols[i].probability);
-        printf("%i\t", symbols[i].L);
+        printf("%i\t", symbols[i].code_length);
 
-        for (int j = 0; j < symbols[i].L; ++j)
+        for (int j = 0; j < symbols[i].code_length; ++j)
         {
             printf("%d", symbols[i].code[j]);
         }
@@ -593,6 +593,21 @@ void printSymbolCodes(Symbol *symbols, int alphabet_size)
         printf("\n");
     }
     printf("---------------------------------------------\n");
+}
+
+void calculateEntropyAndAverageCodeLength(Symbol *symbols, int alphabet_size)
+{
+    double entropy = 0;
+    double average_code_length = 0;
+
+    for (int i = 0; i < alphabet_size; ++i)
+    {
+        entropy -= symbols[i].probability * log2(symbols[i].probability);
+        average_code_length += symbols[i].code_length * symbols[i].probability;
+    }
+
+    printf("Entropy: %f\n", entropy);
+    printf("Average code length: %f\n\n", average_code_length);
 }
 
 void codingInteraction()
@@ -638,6 +653,7 @@ void codingInteraction()
     insertionSortForCoding(symbols, alphabet_size);
     gilbertMooreCoding(symbols, alphabet_size);
     printSymbolCodes(symbols, alphabet_size);
+    calculateEntropyAndAverageCodeLength(symbols, alphabet_size);
 
     system("pause");
 }
