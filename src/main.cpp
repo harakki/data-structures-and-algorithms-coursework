@@ -47,7 +47,7 @@ struct Tree
     List *next = nullptr;
 };
 
-struct Symbol 
+struct Symbol
 {
     char symbol;
     double probability;
@@ -121,11 +121,11 @@ void printList(List *&head)
 
     int record_number = 1;
 
-    cout << "---------------------------------------------------------------------------------\n";
+    cout << "-Nmb----Full name-----------------------Dep.----Post--------------------DtofBrth-\n";
 
     while (ptr != nullptr)
     {
-        cout << record_number << "\t" << ptr->record.full_name << "\t" << ptr->record.department << "\t"
+        cout << " " << record_number << "\t" << ptr->record.full_name << "\t" << ptr->record.department << "\t"
              << ptr->record.post << "\t" << ptr->record.date_of_birth << "\t" << endl;
         ptr = ptr->next;
         ++record_number;
@@ -155,11 +155,11 @@ void printPartOfList(List *&head, int range_of_records[])
         ptr = ptr->next;
     }
 
-    cout << "---------------------------------------------------------------------------------\n";
+    cout << "-Nmb----Full name-----------------------Dep.----Post--------------------DtofBrth-\n";
 
     for (i; i <= range_of_records[1]; ++i)
     {
-        cout << record_number << "\t" << ptr->record.full_name << "\t" << ptr->record.department << "\t"
+        cout << " " << record_number << "\t" << ptr->record.full_name << "\t" << ptr->record.department << "\t"
              << ptr->record.post << "\t" << ptr->record.date_of_birth << "\t" << endl;
         ptr = ptr->next;
         ++record_number;
@@ -448,6 +448,20 @@ void createOptimalSearchTreeA1(Tree *&root, List *&head)
     }
 }
 
+void deleteTree(Tree *root)
+{
+    if (root == NULL)
+    {
+        return;
+    }
+
+    deleteTree(root->left);
+    deleteTree(root->right);
+
+    //delete root;
+    free(root);
+}
+
 List *treeSearch(Tree *&root, int target)
 {
     if (root == nullptr)
@@ -480,7 +494,7 @@ void treeInteraction()
     Tree *root = nullptr;
 
     createOptimalSearchTreeA1(root, head);
-    
+
     printf("Search in the optimal search tree\n\n");
 
     int search = 0;
@@ -494,15 +508,138 @@ void treeInteraction()
     if (found == nullptr)
     {
         printf("\nThis value was not found!\n\n");
+
+        deleteList(found);
+        deleteList(head);
+        deleteTree(root);
+
+        system("pause");
+        return;
+    }
+    else
+    {
+        printList(found);
+
+        deleteList(found);
+        deleteList(head);
+        deleteTree(root);
+
+        return;
+    }
+}
+
+void insertionSortForCoding(Symbol *symbols, int alphabet_size)
+{
+    int i, j;
+    Symbol key;
+
+    for (i = 1; i < alphabet_size; i++)
+    {
+        key = symbols[i];
+        j = i - 1;
+
+        // Перемещение элементов symbols[0..i-1], которые больше ключа,
+        // на одну позицию вперед от их текущей позиции
+        while (j >= 0 && symbols[j].probability < key.probability)
+        {
+            symbols[j + 1] = symbols[j];
+            j = j - 1;
+        }
+
+        symbols[j + 1] = key;
+    }
+}
+
+void gilbertMooreCoding(Symbol *symbols, int alphabet_size)
+{
+    double pr = 0;
+
+    for (int i = 0; i < alphabet_size; ++i)
+    {
+        symbols[i].Q = pr + symbols[i].probability / 2;
+
+        pr += symbols[i].probability;
+
+        symbols[i].L = -log2(symbols[i].probability) + 1;
+
+        for (int j = 0; j < symbols[i].L; ++j)
+        {
+            symbols[i].Q *= 2;
+            symbols[i].code[j] = (int)symbols[i].Q;
+
+            if (symbols[i].Q > 1)
+            {
+                symbols[i].Q -= 1;
+            }
+        }
+    }
+}
+
+void printSymbolCodes(Symbol *symbols, int alphabet_size)
+{
+    printf("-A------P---------------L-------Codeword------\n");
+
+    for (int i = 0; i < alphabet_size; ++i)
+    {
+        printf(" [%c]\t", symbols[i].symbol);
+        printf("%f\t", symbols[i].probability);
+        printf("%i\t", symbols[i].L);
+
+        for (int j = 0; j < symbols[i].L; ++j)
+        {
+            printf("%d", symbols[i].code[j]);
+        }
+
+        printf("\n");
+    }
+    printf("---------------------------------------------\n");
+}
+
+void codingInteraction()
+{
+    FILE *file = NULL;
+
+    fopen_s(&file, "testBase2.dat", "rb");
+
+    system("cls");
+
+    if (file == NULL)
+    {
+        printf("Cannot open the file!\n");
         system("pause");
         return;
     }
 
-    while (found != nullptr)
+    int frequencies[MAX_SYMBOLS] = {0};
+    int total = 0;
+    char ch;
+
+    while (fread(&ch, sizeof(char), 1, file))
     {
-        printList(found);
-        return;
+        frequencies[(unsigned char)ch]++;
+        total++;
     }
+
+    fclose(file);
+
+    Symbol symbols[MAX_SYMBOLS];
+    int alphabet_size = 0;
+
+    for (int i = 0; i < MAX_SYMBOLS; ++i)
+    {
+        if (frequencies[i] > 0)
+        {
+            symbols[alphabet_size].symbol = (char)i;
+            symbols[alphabet_size].probability = (double)frequencies[i] / total;
+            alphabet_size++;
+        }
+    }
+
+    insertionSortForCoding(symbols, alphabet_size);
+    gilbertMooreCoding(symbols, alphabet_size);
+    printSymbolCodes(symbols, alphabet_size);
+
+    system("pause");
 }
 
 void programInteraction(List *&head)
@@ -519,8 +656,7 @@ void programInteraction(List *&head)
         printf("Page %i/%i\n", range_of_records[0] / PAGE_SIZE + 1, AMMOUNT_OF_PAGES);
         printPartOfList(head, range_of_records);
         printf("Use arrow keys to change page, [F] to search for part of records, [Z] to search \nwith tree, [E] to "
-               "display all records or "
-               "enter [ESC] for exit.\n");
+               "display all records, [C] to show symbol coding or enter [ESC] \nfor exit.\n");
 
         switch (_getch())
         {
@@ -559,6 +695,11 @@ void programInteraction(List *&head)
 
             break;
 
+        case 'c':
+            codingInteraction();
+
+            break;
+
         case '0':
         case 27: // [ESC]
             exit_flag = true;
@@ -570,6 +711,7 @@ void programInteraction(List *&head)
 
 int main(int argc, char *argv[])
 {
+    SetConsoleCP(866);
     SetConsoleOutputCP(866);
 
     List *list = fillOutList();
