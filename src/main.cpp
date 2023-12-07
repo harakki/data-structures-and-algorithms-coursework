@@ -1,5 +1,6 @@
 #include <Windows.h>
 #include <conio.h>
+#include <fstream>
 #include <iostream>
 
 #define DATABASE_SIZE 4000
@@ -458,7 +459,6 @@ void deleteTree(Tree *root)
     deleteTree(root->left);
     deleteTree(root->right);
 
-    // delete root;
     free(root);
 }
 
@@ -466,12 +466,12 @@ List *treeSearch(Tree *&root, int target)
 {
     if (root == nullptr)
     {
-        return NULL; // В дереве нет узла с заданным значением
+        return NULL;
     }
 
     if (target == root->data)
     {
-        return root->next; // Значение найдено
+        return root->next;
     }
     else if (target < root->data)
     {
@@ -538,8 +538,6 @@ void insertionSortForCoding(Symbol *symbols, int alphabet_size)
         key = symbols[i];
         j = i - 1;
 
-        // Перемещение элементов symbols[0..i-1], которые больше ключа,
-        // на одну позицию вперед от их текущей позиции
         while (j >= 0 && symbols[j].probability < key.probability)
         {
             symbols[j + 1] = symbols[j];
@@ -610,6 +608,39 @@ void calculateEntropyAndAverageCodeLength(Symbol *symbols, int alphabet_size)
     printf("Average code length: %f\n\n", average_code_length);
 }
 
+void writeCodingDataToFile(Symbol *symbols, int alphabet_size)
+{
+    std::ifstream inFile("testBase2.dat", std::ios::binary);
+    std::ofstream outFile("out.dat", std::ios::binary);
+
+    if (inFile.is_open() && outFile.is_open())
+    {
+        char ch;
+        while (inFile.get(ch))
+        {
+            for (int i = 0; i < alphabet_size; ++i)
+            {
+                if (symbols[i].symbol == ch)
+                {
+                    for (int j = 0; j < symbols[i].code_length; ++j)
+                    {
+                        char codeChar = symbols[i].code[j] + '0';
+                        outFile.write(&codeChar, sizeof(char));
+                    }
+                    break;
+                }
+            }
+        }
+
+        inFile.close();
+        outFile.close();
+    }
+    else
+    {
+        std::cout << "Unable to open files for reading or writing." << std::endl;
+    }
+}
+
 void codingInteraction()
 {
     FILE *file = NULL;
@@ -654,6 +685,8 @@ void codingInteraction()
     gilbertMooreCoding(symbols, alphabet_size);
     printSymbolCodes(symbols, alphabet_size);
     calculateEntropyAndAverageCodeLength(symbols, alphabet_size);
+
+    writeCodingDataToFile(symbols, alphabet_size);
 
     system("pause");
 }
